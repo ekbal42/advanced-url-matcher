@@ -4,8 +4,17 @@ export class PathPlugin implements MatchPlugin {
   name = "path";
 
   match(context: MatchContext): MatchResult {
-    const patternPath = context.patternUrl.pathname;
-    const targetPath = context.targetUrl.pathname;
+    let patternPath = context.patternUrl.pathname;
+    let targetPath = context.targetUrl.pathname;
+
+    if (context.options.strictTrailingSlash === false) {
+      if (patternPath.endsWith("/") && patternPath.length > 1) {
+        patternPath = patternPath.slice(0, -1);
+      }
+      if (targetPath.endsWith("/") && targetPath.length > 1) {
+        targetPath = targetPath.slice(0, -1);
+      }
+    }
 
     let regexPattern = patternPath
       .replace(/[.+?^${}()|[\]\\]/g, "\\$&")

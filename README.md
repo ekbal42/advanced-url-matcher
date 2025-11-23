@@ -21,7 +21,7 @@ npm install url-pattern-matcher
 ```typescript
 import { matchUrl } from "url-pattern-matcher";
 
-// --- 1. Scheme & Domain ---
+// --- 1. Scheme & Domain Matching ---
 matchUrl("https://example.com", "https://example.com"); // true
 matchUrl("https://*.example.com", "https://sub.example.com"); // true
 
@@ -45,13 +45,17 @@ matchUrl(
   "https://example.com?type=my_custom"
 ); // true
 
-// --- 4. Hybrid (Path + Query) ---
+// --- 4. Hash Matching ---
+matchUrl("https://example.com#section1", "https://example.com#section1"); // true
+matchUrl("https://example.com#section1", "https://example.com#section2"); // false
+
+// --- 5. Hybrid (Path + Query) ---
 matchUrl(
   "https://example.com/products/:category?sort=asc,desc&page=*",
   "https://example.com/products/shoes?sort=desc&page=2"
 ); // true
 
-// --- 5. Regex (Advanced) ---
+// --- 6. Regex (Advanced) ---
 matchUrl("regex:^https://example\\.com/\\d+$", "https://example.com/123"); // true
 ```
 
@@ -61,10 +65,13 @@ matchUrl("regex:^https://example\\.com/\\d+$", "https://example.com/123"); // tr
 
 #### `MatchOptions`
 
-- `exact?: boolean`: Force exact matching (default: false).
-- `strictTrailingSlash?: boolean`: If false, treats `/path` and `/path/` as the same (default: true).
-- `ignoreQuery?: boolean`: Ignore query parameters during matching (default: false).
-- `ignoreHash?: boolean`: Ignore URL hash during matching (default: false).
+| Option                   | Type      | Default | Description                                                                      |
+| :----------------------- | :-------- | :------ | :------------------------------------------------------------------------------- |
+| `exact`                  | `boolean` | `false` | Force exact matching.                                                            |
+| `strictTrailingSlash`    | `boolean` | `true`  | If `false`, treats `/path` and `/path/` as the same.                             |
+| `ignoreQuery`            | `boolean` | `false` | Ignore query parameters during matching.                                         |
+| `ignoreHash`             | `boolean` | `false` | Ignore URL hash during matching.                                                 |
+| `ignoreExtraQueryparams` | `boolean` | `true`  | If `false`, fails if target URL has query parameters not present in the pattern. |
 
 #### `MatchResult`
 

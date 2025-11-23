@@ -1,7 +1,9 @@
 import { matchUrl } from "./src/index";
 
 const tests = [
-  // --- Scheme Matching ---
+  // ==========================================
+  // 1. Scheme & Domain Matching
+  // ==========================================
   {
     name: "Scheme Match (https)",
     result: matchUrl("https://example.com", "https://example.com").matched,
@@ -12,8 +14,6 @@ const tests = [
     result: matchUrl("https://example.com", "http://example.com").matched,
     expected: false,
   },
-
-  // --- Domain Matching ---
   {
     name: "Domain Exact Match",
     result: matchUrl("https://example.com", "https://example.com").matched,
@@ -31,7 +31,9 @@ const tests = [
     expected: false,
   },
 
-  // --- Path Matching ---
+  // ==========================================
+  // 2. Path Matching
+  // ==========================================
   {
     name: "Path Exact Match",
     result: matchUrl("https://example.com/foo", "https://example.com/foo")
@@ -70,7 +72,9 @@ const tests = [
     expected: true,
   },
 
-  // --- Query Matching ---
+  // ==========================================
+  // 3. Query Matching
+  // ==========================================
   {
     name: "Query Exact Match",
     result: matchUrl(
@@ -132,7 +136,41 @@ const tests = [
     expected: false,
   },
 
-  // --- Hybrid (Path + Query) ---
+  // ==========================================
+  // 4. Hash Matching
+  // ==========================================
+  {
+    name: "Hash Exact Match",
+    result: matchUrl(
+      "https://example.com#section1",
+      "https://example.com#section1"
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "Hash Mismatch",
+    result: matchUrl(
+      "https://example.com#section1",
+      "https://example.com#section2"
+    ).matched,
+    expected: false,
+  },
+  {
+    name: "Hash Missing in Target",
+    result: matchUrl("https://example.com#section1", "https://example.com")
+      .matched,
+    expected: false,
+  },
+  {
+    name: "Hash Present in Target but not Pattern",
+    result: matchUrl("https://example.com", "https://example.com#section1")
+      .matched,
+    expected: false,
+  },
+
+  // ==========================================
+  // 5. Hybrid Matching (Path + Query)
+  // ==========================================
   {
     name: "Hybrid: Path Param + Query List",
     result: matchUrl(
@@ -142,13 +180,106 @@ const tests = [
     expected: true,
   },
 
-  // --- Regex Matching (Legacy/Advanced) ---
+  // ==========================================
+  // 6. Regex Matching (Advanced)
+  // ==========================================
   {
     name: "Regex Match",
     result: matchUrl(
       "regex:^https://example\\.com/\\d+$",
       "https://example.com/123"
     ).matched,
+    expected: true,
+  },
+
+  // ==========================================
+  // 7. Configuration Options
+  // ==========================================
+
+  // --- ignoreExtraQueryparams ---
+  {
+    name: "Option: ignoreExtraQueryparams = false (Should Fail)",
+    result: matchUrl("https://example.com?a=1", "https://example.com?a=1&b=2", {
+      ignoreExtraQueryparams: false,
+    }).matched,
+    expected: false,
+  },
+  {
+    name: "Option: ignoreExtraQueryparams = true (Should Pass)",
+    result: matchUrl("https://example.com?a=1", "https://example.com?a=1&b=2", {
+      ignoreExtraQueryparams: true,
+    }).matched,
+    expected: true,
+  },
+
+  // --- strictTrailingSlash ---
+  {
+    name: "Option: strictTrailingSlash = false (Should Pass)",
+    result: matchUrl("https://example.com/foo", "https://example.com/foo/", {
+      strictTrailingSlash: false,
+    }).matched,
+    expected: true,
+  },
+  {
+    name: "Option: strictTrailingSlash = true (Should Fail)",
+    result: matchUrl("https://example.com/foo", "https://example.com/foo/", {
+      strictTrailingSlash: true,
+    }).matched,
+    expected: false,
+  },
+
+  // --- exact ---
+  {
+    name: "Option: exact = true (Should Pass)",
+    result: matchUrl("https://example.com/foo", "https://example.com/foo", {
+      exact: true,
+    }).matched,
+    expected: true,
+  },
+  {
+    name: "Option: exact = true (Should Fail - Mismatch)",
+    result: matchUrl("https://example.com/foo", "https://example.com/foo/", {
+      exact: true,
+    }).matched,
+    expected: false,
+  },
+
+  // --- ignoreQuery ---
+  {
+    name: "Option: ignoreQuery = true (Should Pass)",
+    result: matchUrl("https://example.com?a=1", "https://example.com?b=2", {
+      ignoreQuery: true,
+    }).matched,
+    expected: true,
+  },
+  {
+    name: "Option: ignoreQuery = false (Should Fail)",
+    result: matchUrl("https://example.com?a=1", "https://example.com?b=2", {
+      ignoreQuery: false,
+    }).matched,
+    expected: false,
+  },
+
+  // --- ignoreHash ---
+  {
+    name: "Option: ignoreHash = true (Should Pass)",
+    result: matchUrl("https://example.com#foo", "https://example.com#bar", {
+      ignoreHash: true,
+    }).matched,
+    expected: true,
+  },
+  {
+    name: "Option: ignoreHash = false (Should Fail)",
+    result: matchUrl("https://example.com#foo", "https://example.com#bar", {
+      ignoreHash: false,
+    }).matched,
+    expected: false,
+  },
+  {
+    name: "Option: ignoreHash = false (Should Pass)",
+    result: matchUrl("https://example.com#foo", "https://example.com#foo", {
+      ignoreHash: false,
+    }).matched,
     expected: true,
   },
 ];

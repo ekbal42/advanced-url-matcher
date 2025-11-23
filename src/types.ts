@@ -12,4 +12,5 @@ export interface MatchOptions {
   strictTrailingSlash?: boolean;
   ignoreQuery?: boolean;
   ignoreHash?: boolean;
+  ignoreExtraQueryparams?: boolean;
 }

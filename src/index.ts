@@ -5,6 +5,7 @@ import { SchemePlugin } from "./plugins/scheme";
 import { DomainPlugin } from "./plugins/domain";
 import { PathPlugin } from "./plugins/path";
 import { QueryPlugin } from "./plugins/query";
+import { HashPlugin } from "./plugins/hash";
 import { RegexMatcher } from "./matchers/regex";
 
 export * from "./types";
@@ -19,11 +20,16 @@ export class UrlMatcher {
       new DomainPlugin(),
       new PathPlugin(),
       new QueryPlugin(),
+      new HashPlugin(),
     ];
     this.regexMatcher = new RegexMatcher();
   }
 
   match(pattern: string, url: string, options: MatchOptions = {}): MatchResult {
+    if (options.exact === true) {
+      return { matched: pattern === url };
+    }
+
     if (pattern.startsWith("regex:")) {
       return this.regexMatcher.match(pattern, url);
     }
@@ -40,6 +46,7 @@ export class UrlMatcher {
       targetUrl,
       patternOriginal: pattern,
       targetOriginal: url,
+      options,
     };
 
     const combinedParams: Record<string, string> = {};

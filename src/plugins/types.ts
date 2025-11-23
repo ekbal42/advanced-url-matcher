@@ -1,8 +1,11 @@
+import { MatchOptions } from "../types";
+
 export interface MatchContext {
   patternUrl: URL;
   targetUrl: URL;
   patternOriginal: string;
   targetOriginal: string;
+  options: MatchOptions;
 }
 
 export interface MatchResult {

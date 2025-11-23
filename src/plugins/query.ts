@@ -4,6 +4,10 @@ export class QueryPlugin implements MatchPlugin {
   name = "query";
 
   match(context: MatchContext): MatchResult {
+    if (context.options.ignoreQuery === true) {
+      return { matched: true };
+    }
+
     const patternParams = context.patternUrl.searchParams;
     const targetParams = context.targetUrl.searchParams;
 
@@ -37,6 +41,14 @@ export class QueryPlugin implements MatchPlugin {
 
       if (!paramMatched) {
         return { matched: false };
+      }
+    }
+
+    if (context.options.ignoreExtraQueryparams === false) {
+      for (const key of targetParams.keys()) {
+        if (!patternParams.has(key)) {
+          return { matched: false };
+        }
       }
     }
 
