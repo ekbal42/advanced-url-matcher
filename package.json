@@ -1,6 +1,6 @@
 {
   "name": "advanced-url-matcher",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A comprehensive URL matching library.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

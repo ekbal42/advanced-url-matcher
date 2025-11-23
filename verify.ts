@@ -227,6 +227,25 @@ const tests = [
     }).matched,
     expected: false,
   },
+  {
+    name: "Option: strictTrailingSlash = true with root path (Should Fail)",
+    result: matchUrl("http://localhost:5173", "http://localhost:5173/", {
+      strictTrailingSlash: true,
+    }).matched,
+    expected: false,
+  },
+  {
+    name: "Option: strictTrailingSlash = false with root path (Should Pass)",
+    result: matchUrl("http://localhost:5173", "http://localhost:5173/", {
+      strictTrailingSlash: false,
+    }).matched,
+    expected: true,
+  },
+  {
+    name: "Default behavior with root path (Should Pass - ignores trailing slash)",
+    result: matchUrl("http://localhost:5173", "http://localhost:5173/").matched,
+    expected: true,
+  },
 
   // --- exact ---
   {

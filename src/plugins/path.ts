@@ -7,7 +7,23 @@ export class PathPlugin implements MatchPlugin {
     let patternPath = context.patternUrl.pathname;
     let targetPath = context.targetUrl.pathname;
 
-    if (context.options.strictTrailingSlash === false) {
+    // When strictTrailingSlash is true, we need to check the original URLs
+    // because the URL parser normalizes trailing slashes automatically
+    if (context.options.strictTrailingSlash === true) {
+      // Extract path from original URL strings to detect trailing slash
+      const patternHasTrailingSlash = this.hasTrailingSlash(
+        context.patternOriginal
+      );
+      const targetHasTrailingSlash = this.hasTrailingSlash(
+        context.targetOriginal
+      );
+
+      // If trailing slashes don't match, return false
+      if (patternHasTrailingSlash !== targetHasTrailingSlash) {
+        return { matched: false };
+      }
+    } else {
+      // Default behavior: normalize trailing slashes (ignore them)
       if (patternPath.endsWith("/") && patternPath.length > 1) {
         patternPath = patternPath.slice(0, -1);
       }
@@ -50,5 +66,16 @@ export class PathPlugin implements MatchPlugin {
     }
 
     return { matched: true, params };
+  }
+
+  private hasTrailingSlash(url: string): boolean {
+    // Remove protocol and domain to get path+query+hash
+    const urlWithoutProtocol = url.replace(/^[a-z]+:\/\/[^\/]+/i, "");
+
+    // Extract just the path (before ? or #)
+    const pathPart = urlWithoutProtocol.split(/[?#]/)[0];
+
+    // Check if path ends with /
+    return pathPart.endsWith("/");
   }
 }
