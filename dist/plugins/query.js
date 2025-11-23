@@ -6,6 +6,9 @@ class QueryPlugin {
         this.name = "query";
     }
     match(context) {
+        if (context.options.ignoreQuery === true) {
+            return { matched: true };
+        }
         const patternParams = context.patternUrl.searchParams;
         const targetParams = context.targetUrl.searchParams;
         for (const [key, value] of patternParams.entries()) {
@@ -35,6 +38,13 @@ class QueryPlugin {
             }
             if (!paramMatched) {
                 return { matched: false };
+            }
+        }
+        if (context.options.ignoreExtraQueryparams === false) {
+            for (const key of targetParams.keys()) {
+                if (!patternParams.has(key)) {
+                    return { matched: false };
+                }
             }
         }
         return { matched: true };

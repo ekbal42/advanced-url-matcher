@@ -20,6 +20,7 @@ const scheme_1 = require("./plugins/scheme");
 const domain_1 = require("./plugins/domain");
 const path_1 = require("./plugins/path");
 const query_1 = require("./plugins/query");
+const hash_1 = require("./plugins/hash");
 const regex_1 = require("./matchers/regex");
 __exportStar(require("./types"), exports);
 class UrlMatcher {
@@ -29,10 +30,14 @@ class UrlMatcher {
             new domain_1.DomainPlugin(),
             new path_1.PathPlugin(),
             new query_1.QueryPlugin(),
+            new hash_1.HashPlugin(),
         ];
         this.regexMatcher = new regex_1.RegexMatcher();
     }
     match(pattern, url, options = {}) {
+        if (options.exact === true) {
+            return { matched: pattern === url };
+        }
         if (pattern.startsWith("regex:")) {
             return this.regexMatcher.match(pattern, url);
         }
@@ -46,6 +51,7 @@ class UrlMatcher {
             targetUrl,
             patternOriginal: pattern,
             targetOriginal: url,
+            options,
         };
         const combinedParams = {};
         for (const plugin of this.plugins) {
