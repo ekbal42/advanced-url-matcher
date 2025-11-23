@@ -1,6 +1,6 @@
 {
   "name": "advanced-url-matcher",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A comprehensive URL matching library.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,15 @@
     "verify": "ts-node verify.ts",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "url-matcher",
+    "url-parser",
+    "url-matching",
+    "url-comparison",
+    "url-validation",
+    "url-parsing",
+    "advanced-url-matcher"
+  ],
   "author": "Asif Ekbal",
   "license": "ISC",
   "type": "commonjs",
