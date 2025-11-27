@@ -1,4 +1,5 @@
 import { MatchPlugin, MatchContext, MatchResult } from "./types";
+import { jsonMatch } from "../utils/json-matcher";
 
 export class QueryPlugin implements MatchPlugin {
   name = "query";
@@ -21,20 +22,30 @@ export class QueryPlugin implements MatchPlugin {
       const allowedValues = value.split(",");
       let paramMatched = false;
 
-      for (const allowedValue of allowedValues) {
-        if (allowedValue.includes("*")) {
-          const regexPattern = allowedValue
-            .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-            .replace(/\*/g, ".*");
-          const regex = new RegExp(`^${regexPattern}$`);
-          if (regex.test(targetValue)) {
-            paramMatched = true;
-            break;
-          }
-        } else {
-          if (targetValue === allowedValue) {
-            paramMatched = true;
-            break;
+      try {
+        const patternJson = JSON.parse(value);
+        const targetJson = JSON.parse(targetValue);
+        if (jsonMatch(patternJson, targetJson)) {
+          paramMatched = true;
+        }
+      } catch (e) {}
+
+      if (!paramMatched) {
+        for (const allowedValue of allowedValues) {
+          if (allowedValue.includes("*")) {
+            const regexPattern = allowedValue
+              .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+              .replace(/\*/g, ".*");
+            const regex = new RegExp(`^${regexPattern}$`);
+            if (regex.test(targetValue)) {
+              paramMatched = true;
+              break;
+            }
+          } else {
+            if (targetValue === allowedValue) {
+              paramMatched = true;
+              break;
+            }
           }
         }
       }
@@ -44,7 +55,7 @@ export class QueryPlugin implements MatchPlugin {
       }
     }
 
-    if (context.options.ignoreExtraQueryparams === false) {
+    if (context.options.strictQuery === true) {
       for (const key of targetParams.keys()) {
         if (!patternParams.has(key)) {
           return { matched: false };

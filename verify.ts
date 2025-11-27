@@ -42,8 +42,14 @@ const tests = [
   },
   {
     name: "Path Wildcard Match (/foo/*)",
+    result: matchUrl("https://example.com/foo/*", "https://example.com/foo/bar")
+      .matched,
+    expected: true,
+  },
+  {
+    name: "Path Deep Wildcard Match (/foo/**)",
     result: matchUrl(
-      "https://example.com/foo/*",
+      "https://example.com/foo/**",
       "https://example.com/foo/bar/baz"
     ).matched,
     expected: true,
@@ -181,6 +187,58 @@ const tests = [
   },
 
   // ==========================================
+  // 6. JSON Query Matching
+  // ==========================================
+  {
+    name: "JSON Exact Match",
+    result: matchUrl(
+      'https://example.com?filter={"name":"John"}',
+      'https://example.com?filter={"name":"John"}'
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "JSON Wildcard Match (name=J*)",
+    result: matchUrl(
+      'https://example.com?filter={"name":"J*"}',
+      'https://example.com?filter={"name":"John"}'
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "JSON List Match (age=18,25,30)",
+    result: matchUrl(
+      'https://example.com?filter={"age":"18,25,30"}',
+      'https://example.com?filter={"age":25}'
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "JSON Range Match (price=10..100)",
+    result: matchUrl(
+      'https://example.com?filter={"price":"10..100"}',
+      'https://example.com?filter={"price":50}'
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "JSON Nested Match",
+    result: matchUrl(
+      'https://example.com?data={"user":{"role":"admin"}}',
+      'https://example.com?data={"user":{"role":"admin","id":1}}'
+    ).matched,
+    expected: true,
+  },
+  {
+    name: "JSON Array Match",
+    result: matchUrl(
+      'https://example.com?tags=["a","b"]',
+      'https://example.com?tags=["a","b"]'
+    ).matched,
+    expected: true,
+  },
+
+  // ==========================================
   // 6. Regex Matching (Advanced)
   // ==========================================
   {
@@ -196,18 +254,18 @@ const tests = [
   // 7. Configuration Options
   // ==========================================
 
-  // --- ignoreExtraQueryparams ---
+  // --- strictQuery ---
   {
-    name: "Option: ignoreExtraQueryparams = false (Should Fail)",
+    name: "Option: strictQuery = true (Should Fail)",
     result: matchUrl("https://example.com?a=1", "https://example.com?a=1&b=2", {
-      ignoreExtraQueryparams: false,
+      strictQuery: true,
     }).matched,
     expected: false,
   },
   {
-    name: "Option: ignoreExtraQueryparams = true (Should Pass)",
+    name: "Option: strictQuery = false (Should Pass)",
     result: matchUrl("https://example.com?a=1", "https://example.com?a=1&b=2", {
-      ignoreExtraQueryparams: true,
+      strictQuery: false,
     }).matched,
     expected: true,
   },

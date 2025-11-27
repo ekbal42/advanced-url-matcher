@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryPlugin = void 0;
+const json_matcher_1 = require("../utils/json-matcher");
 class QueryPlugin {
     constructor() {
         this.name = "query";
@@ -18,21 +19,31 @@ class QueryPlugin {
             }
             const allowedValues = value.split(",");
             let paramMatched = false;
-            for (const allowedValue of allowedValues) {
-                if (allowedValue.includes("*")) {
-                    const regexPattern = allowedValue
-                        .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-                        .replace(/\*/g, ".*");
-                    const regex = new RegExp(`^${regexPattern}$`);
-                    if (regex.test(targetValue)) {
-                        paramMatched = true;
-                        break;
-                    }
+            try {
+                const patternJson = JSON.parse(value);
+                const targetJson = JSON.parse(targetValue);
+                if ((0, json_matcher_1.jsonMatch)(patternJson, targetJson)) {
+                    paramMatched = true;
                 }
-                else {
-                    if (targetValue === allowedValue) {
-                        paramMatched = true;
-                        break;
+            }
+            catch (e) { }
+            if (!paramMatched) {
+                for (const allowedValue of allowedValues) {
+                    if (allowedValue.includes("*")) {
+                        const regexPattern = allowedValue
+                            .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+                            .replace(/\*/g, ".*");
+                        const regex = new RegExp(`^${regexPattern}$`);
+                        if (regex.test(targetValue)) {
+                            paramMatched = true;
+                            break;
+                        }
+                    }
+                    else {
+                        if (targetValue === allowedValue) {
+                            paramMatched = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -40,7 +51,7 @@ class QueryPlugin {
                 return { matched: false };
             }
         }
-        if (context.options.ignoreExtraQueryparams === false) {
+        if (context.options.strictQuery === true) {
             for (const key of targetParams.keys()) {
                 if (!patternParams.has(key)) {
                     return { matched: false };

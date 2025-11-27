@@ -1,4 +1,5 @@
 import { MatchPlugin, MatchContext, MatchResult } from "./types";
+import { matchSegment } from "../utils/segment-matcher";
 
 export class PathPlugin implements MatchPlugin {
   name = "path";
@@ -7,10 +8,7 @@ export class PathPlugin implements MatchPlugin {
     let patternPath = context.patternUrl.pathname;
     let targetPath = context.targetUrl.pathname;
 
-    // When strictTrailingSlash is true, we need to check the original URLs
-    // because the URL parser normalizes trailing slashes automatically
     if (context.options.strictTrailingSlash === true) {
-      // Extract path from original URL strings to detect trailing slash
       const patternHasTrailingSlash = this.hasTrailingSlash(
         context.patternOriginal
       );
@@ -18,12 +16,10 @@ export class PathPlugin implements MatchPlugin {
         context.targetOriginal
       );
 
-      // If trailing slashes don't match, return false
       if (patternHasTrailingSlash !== targetHasTrailingSlash) {
         return { matched: false };
       }
     } else {
-      // Default behavior: normalize trailing slashes (ignore them)
       if (patternPath.endsWith("/") && patternPath.length > 1) {
         patternPath = patternPath.slice(0, -1);
       }
@@ -32,50 +28,75 @@ export class PathPlugin implements MatchPlugin {
       }
     }
 
-    let regexPattern = patternPath
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*");
+    const patternSegments = patternPath.split("/").filter((s) => s !== "");
+    const targetSegments = targetPath.split("/").filter((s) => s !== "");
 
-    regexPattern = regexPattern.replace(/:([a-zA-Z0-9_]+)/g, "([^/]+)");
+    const params: Record<string, string> = {};
+    let pIndex = 0;
+    let tIndex = 0;
 
-    const regex = new RegExp(`^${regexPattern}$`);
-    const match = targetPath.match(regex);
+    while (pIndex < patternSegments.length && tIndex < targetSegments.length) {
+      let pSegment = patternSegments[pIndex];
+      const tSegment = targetSegments[tIndex];
 
-    if (!match) {
+      if (pSegment === ":*" || pSegment === "**") {
+        return { matched: true, params };
+      }
+      if (pSegment === "*") {
+        pIndex++;
+        tIndex++;
+        continue;
+      }
+
+      let isOptional = false;
+      if (pSegment.endsWith("?") && pSegment.startsWith(":")) {
+        isOptional = true;
+        pSegment = pSegment.slice(0, -1);
+      }
+
+      const segmentMatches = matchSegment(pSegment, tSegment);
+
+      if (segmentMatches) {
+        if (pSegment.startsWith(":") && !pSegment.includes("*")) {
+          const paramName = pSegment.slice(1);
+          params[paramName] = tSegment;
+        }
+        pIndex++;
+        tIndex++;
+      } else if (isOptional) {
+        pIndex++;
+      } else {
+        return { matched: false };
+      }
+    }
+
+    while (pIndex < patternSegments.length) {
+      const pSegment = patternSegments[pIndex];
+
+      if (pSegment === ":*" || pSegment === "**") {
+        return { matched: true, params };
+      }
+
+      if (pSegment.endsWith("?") && pSegment.startsWith(":")) {
+        pIndex++;
+        continue;
+      }
+
       return { matched: false };
     }
 
-    const params: Record<string, string> = {};
-    const paramNames: string[] = [];
-
-    const extractionRegexStr = patternPath
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*")
-      .replace(/:([a-zA-Z0-9_]+)/g, (_, name) => {
-        paramNames.push(name);
-        return "([^/]+)";
-      });
-
-    const extractionRegex = new RegExp(`^${extractionRegexStr}$`);
-    const extractionMatch = targetPath.match(extractionRegex);
-
-    if (extractionMatch) {
-      paramNames.forEach((name, index) => {
-        params[name] = extractionMatch[index + 1];
-      });
+    if (tIndex < targetSegments.length) {
+      return { matched: false };
     }
 
     return { matched: true, params };
   }
 
   private hasTrailingSlash(url: string): boolean {
-    // Remove protocol and domain to get path+query+hash
     const urlWithoutProtocol = url.replace(/^[a-z]+:\/\/[^\/]+/i, "");
 
-    // Extract just the path (before ? or #)
     const pathPart = urlWithoutProtocol.split(/[?#]/)[0];
 
-    // Check if path ends with /
     return pathPart.endsWith("/");
   }
 }

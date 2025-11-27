@@ -26,6 +26,33 @@ export class UrlMatcher {
   }
 
   match(pattern: string, url: string, options: MatchOptions = {}): MatchResult {
+    const optionMatch = pattern.match(/^\[([^\]]+)\]/);
+    if (optionMatch) {
+      const optionStr = optionMatch[1];
+      pattern = pattern.slice(optionMatch[0].length);
+
+      const flags = optionStr.split(",").map((f) => f.trim());
+      for (const flag of flags) {
+        switch (flag) {
+          case "exact":
+            options.exact = true;
+            break;
+          case "strict":
+            options.strictTrailingSlash = true;
+            break;
+          case "ignoreQuery":
+            options.ignoreQuery = true;
+            break;
+          case "ignoreHash":
+            options.ignoreHash = true;
+            break;
+          case "strictQuery":
+            options.strictQuery = true;
+            break;
+        }
+      }
+    }
+
     if (options.exact === true) {
       return { matched: pattern === url };
     }
