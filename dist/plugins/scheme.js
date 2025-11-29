@@ -7,7 +7,10 @@ class SchemePlugin {
     }
     match(context) {
         if (context.patternUrl.protocol !== context.targetUrl.protocol) {
-            return { matched: false };
+            return {
+                matched: false,
+                error: `Scheme mismatch: expected ${context.patternUrl.protocol}, got ${context.targetUrl.protocol}`,
+            };
         }
         return { matched: true };
     }

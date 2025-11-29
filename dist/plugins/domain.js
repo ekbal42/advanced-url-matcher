@@ -13,7 +13,10 @@ class DomainPlugin {
             .replace(/\*/g, ".*");
         const regex = new RegExp(`^${regexPattern}$`);
         if (!regex.test(targetHost)) {
-            return { matched: false };
+            return {
+                matched: false,
+                error: `Domain mismatch: expected ${patternHost}, got ${targetHost}`,
+            };
         }
         return { matched: true };
     }

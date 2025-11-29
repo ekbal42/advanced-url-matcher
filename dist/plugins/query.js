@@ -15,7 +15,10 @@ class QueryPlugin {
         for (const [key, value] of patternParams.entries()) {
             const targetValue = targetParams.get(key);
             if (!targetValue) {
-                return { matched: false };
+                return {
+                    matched: false,
+                    error: `Missing query parameter: ${key}`,
+                };
             }
             const allowedValues = value.split(",");
             let paramMatched = false;
@@ -48,13 +51,19 @@ class QueryPlugin {
                 }
             }
             if (!paramMatched) {
-                return { matched: false };
+                return {
+                    matched: false,
+                    error: `Query parameter mismatch: ${key}=${targetValue} does not match ${value}`,
+                };
             }
         }
         if (context.options.strictQuery === true) {
             for (const key of targetParams.keys()) {
                 if (!patternParams.has(key)) {
-                    return { matched: false };
+                    return {
+                        matched: false,
+                        error: `Unexpected query parameter: ${key}`,
+                    };
                 }
             }
         }

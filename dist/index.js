@@ -61,7 +61,11 @@ class UrlMatcher {
             }
         }
         if (options.exact === true) {
-            return { matched: pattern === url };
+            const matched = pattern === url;
+            return {
+                matched,
+                error: matched ? undefined : "Exact match failed",
+            };
         }
         if (pattern.startsWith("regex:")) {
             return this.regexMatcher.match(pattern, url);
@@ -69,7 +73,7 @@ class UrlMatcher {
         const patternUrl = url_parser_1.UrlParser.parse(pattern);
         const targetUrl = url_parser_1.UrlParser.parse(url);
         if (!patternUrl || !targetUrl) {
-            return { matched: false };
+            return { matched: false, error: "Invalid URL" };
         }
         const context = {
             patternUrl,
@@ -82,7 +86,7 @@ class UrlMatcher {
         for (const plugin of this.plugins) {
             const result = plugin.match(context);
             if (!result.matched) {
-                return { matched: false };
+                return result;
             }
             if (result.params) {
                 Object.assign(combinedParams, result.params);
