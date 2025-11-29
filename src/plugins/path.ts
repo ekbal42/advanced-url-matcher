@@ -17,7 +17,10 @@ export class PathPlugin implements MatchPlugin {
       );
 
       if (patternHasTrailingSlash !== targetHasTrailingSlash) {
-        return { matched: false };
+        return {
+          matched: false,
+          error: "Trailing slash mismatch",
+        };
       }
     } else {
       if (patternPath.endsWith("/") && patternPath.length > 1) {
@@ -66,7 +69,10 @@ export class PathPlugin implements MatchPlugin {
       } else if (isOptional) {
         pIndex++;
       } else {
-        return { matched: false };
+        return {
+          matched: false,
+          error: `Path segment mismatch: expected ${pSegment}, got ${tSegment}`,
+        };
       }
     }
 
@@ -82,11 +88,17 @@ export class PathPlugin implements MatchPlugin {
         continue;
       }
 
-      return { matched: false };
+      return {
+        matched: false,
+        error: `Missing path segment: ${pSegment}`,
+      };
     }
 
     if (tIndex < targetSegments.length) {
-      return { matched: false };
+      return {
+        matched: false,
+        error: `Unexpected path segment: ${targetSegments[tIndex]}`,
+      };
     }
 
     return { matched: true, params };

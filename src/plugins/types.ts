@@ -11,6 +11,7 @@ export interface MatchContext {
 export interface MatchResult {
   matched: boolean;
   params?: Record<string, string>;
+  error?: string;
 }
 
 export interface MatchPlugin {

@@ -9,12 +9,13 @@ export class RegexMatcher implements Matcher {
     try {
       const regexString = pattern.substring(6);
       const regex = new RegExp(regexString);
+      const matched = regex.test(url);
       return {
-        matched: regex.test(url),
+        matched,
+        error: matched ? undefined : "Regex match failed",
       };
     } catch (e) {
-      console.error("Invalid regex pattern:", pattern);
-      return { matched: false };
+      return { matched: false, error: "Invalid regex pattern" };
     }
   }
 }

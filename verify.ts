@@ -359,6 +359,45 @@ const tests = [
     }).matched,
     expected: true,
   },
+  // ==========================================
+  // 8. Error Reporting
+  // ==========================================
+  {
+    name: "Error: Scheme Mismatch",
+    result: matchUrl("https://example.com", "http://example.com").error,
+    expected: "Scheme mismatch: expected https:, got http:",
+  },
+  {
+    name: "Error: Domain Mismatch",
+    result: matchUrl("https://example.com", "https://example.org").error,
+    expected: "Domain mismatch: expected example.com, got example.org",
+  },
+  {
+    name: "Error: Path Segment Mismatch",
+    result: matchUrl("https://example.com/foo", "https://example.com/bar")
+      .error,
+    expected: "Path segment mismatch: expected foo, got bar",
+  },
+  {
+    name: "Error: Missing Query Param",
+    result: matchUrl("https://example.com?foo=bar", "https://example.com")
+      .error,
+    expected: "Missing query parameter: foo",
+  },
+  {
+    name: "Error: Query Value Mismatch",
+    result: matchUrl(
+      "https://example.com?foo=bar",
+      "https://example.com?foo=baz"
+    ).error,
+    expected: "Query parameter mismatch: foo=baz does not match bar",
+  },
+  {
+    name: "Error: Hash Mismatch",
+    result: matchUrl("https://example.com#foo", "https://example.com#bar")
+      .error,
+    expected: "Hash mismatch: expected #foo, got #bar",
+  },
 ];
 
 let passed = 0;
